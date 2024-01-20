@@ -13,3 +13,5 @@ The code uses the `Telegraf` libraries to create a Telegram bot, `free-translate
 ## Starting and stopping the bot
 
 The bot is launched using the `bot.launch()` method, and can be stopped using the `SIGINT` or `SIGTERM` signals. To start the bot, you can use the `npm start` command.
+
+https://t.me/newsBot121_bot
