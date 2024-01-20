@@ -1,0 +1,18 @@
+{
+    "static_path": "build",
+    "app_id": "51824316",
+    "endpoints": {
+      "mobile": "tg.js",
+      "mvk": "tg.js",
+      "web": "tg.js"
+    }
+}
+
+
+
+
+
+
+
+
+
