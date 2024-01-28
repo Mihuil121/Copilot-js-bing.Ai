@@ -1,15 +1,14 @@
 {
   "type": "module",
   "dependencies": {
-    "@vkontakte/vk-bridge": "^2.12.2",
     "bingai-js": "^1.7.1",
     "cross-env": "^7.0.3",
     "free-translate": "^0.6.1",
+    "path": "^0.12.7",
     "telegraf": "^4.15.3",
-    "vk-tunnel": "^1.0.0"
+    "youtube-transcript": "^1.0.6"
   },
   "scripts": {
     "start": "node tg.js"
-    
   }
 }
