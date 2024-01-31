@@ -2,8 +2,12 @@ import { Telegraf, Markup } from "telegraf";
 import { translate } from "free-translate";
 import { ChatBot, conversation_style } from "bingai-js";
 import { YoutubeTranscript } from "youtube-transcript";
+import axios from 'axios';
+import fs from 'fs';
+import textract from 'textract';
+import clipboard from "clipboardy";
 
-const cookie ="1EiQnm_sWX9jE_O4fK7k24MsQTf5Q7iSa8DJvBZIe5UA_M0kHXkES_TL99AhDv3vIDYqb11Dy_3xoTv4Ecz_TH-QqjVN-nLRtx4CDDUiv2-47ZFS4NBYlXtP0j04D6kFXknMSN0xKie4lWCsH0pvIbjDbn3b0NbO1ClrTJA63Mu7N_6sK3ao8UR2XJkGMKU6-AbXMBvcYMHWX-LHdEY_XaMMRL_9fHRQYdKdEnXlX0dlq3FaCOv4fF6sPh3xOSTti";
+const cookie = "1EiQnm_sWX9jE_O4fK7k24MsQTf5Q7iSa8DJvBZIe5UA_M0kHXkES_TL99AhDv3vIDYqb11Dy_3xoTv4Ecz_TH-QqjVN-nLRtx4CDDUiv2-47ZFS4NBYlXtP0j04D6kFXknMSN0xKie4lWCsH0pvIbjDbn3b0NbO1ClrTJA63Mu7N_6sK3ao8UR2XJkGMKU6-AbXMBvcYMHWX-LHdEY_XaMMRL_9fHRQYdKdEnXlX0dlq3FaCOv4fF6sPh3xOSTti";
 
 const convStyle = conversation_style.exact;
 const targetLanguage = "en-US";
@@ -20,39 +24,69 @@ async function translateText(text, toLang) {
 
 const bot = new Telegraf("6626923176:AAFQD-OCnvZV_gwqoNjHu_vSPVrEcjXfcyU");
 
-function isYotube(userMessage) {
+function isYoutube(userMessage) {
   const pattern = /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+/;
   return pattern.test(userMessage);
 }
 
+const chatStates = new Map();
+
+let lastBotMessage;
+
 bot.start((ctx) =>
-  ctx.reply(`# Привет, друзья! Я Сopilot,бот с ии искусственный интеллект, созданный Mihuil121. 
-
-Я умею делать много интересных и полезных вещей, и я хочу поделиться ими с вами. Вот некоторые из моих возможностей:
-
-- **Ответы на вопросы**: Если вы хотите узнать что-то новое, я готов помочь вам. Я могу искать информацию в Интернете и давать вам точные и подробные ответы на любые вопросы.
-- **Создание контента**: Если вы хотите развлечься или проявить свою творческую сторону, я тоже могу вам помочь. Я могу создавать оригинальный и творческий контент, такой как стихи, рассказы, код, эссе, песни, пародии на знаменитостей и многое другое, используя свои слова и знания.
-- **Помощь в написании**: Если вы хотите улучшить свои навыки письма или оптимизировать свой контент, я тоже могу вам помочь. Я могу помогать вам с написанием, переписыванием, улучшением или оптимизацией вашего контента, учитывая ваши цели и аудиторию.
-- **Пересказ видео с YouTube**: Если вы хотите получить краткое содержание видео с YouTube, я тоже могу вам помочь. Вам просто нужно отправить мне ссылку на видео, и я сгенерирую для вас пересказ видео в текстовом формате.
-
-Если вам интересен Сopilot, посмотрите другие наши продукты на GitHub. Там вы найдете много интересных и полезных проектов, связанных с искусственным интеллектом.
-
-Напишите мне что-нибудь, чтобы начать диалог. Я буду рад общаться с вами и помогать вам. 😊`)
+  ctx.reply(`Я copilot созданный Mihuil121. Я могу: 1. Ответы на вопросы: Бот может отвечать на ваши вопросы, используя результаты поиска в Интернете. 2. Создание контента: Бот способен создавать оригинальный и творческий контент, такой как стихи, рассказы, код, эссе, песни, пародии на знаменитостей и многое другое, используя свои слова и знания. 3. Помощь в написании: Бот может помочь вам с написанием, переписыванием, улучшением или оптимизацией вашего контента. 4. Пересказ видео с YouTube: Бот умеет пересказывать в краткой форме видео с YouTube. Вам просто нужно отправить ссылку на видео, и бот сгенерирует краткое содержание этого видео.
+  `)
 );
-let lastBotMessage = "";
-let textpol;
+
+bot.on("document", async (ctx) => {
+  const buttonText = Markup.button.callback;
+  const fileId = ctx.message.document.file_id;
+  const fileLink = await ctx.telegram.getFileLink(fileId);
+
+  try {
+    const response = await axios.get(fileLink, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(response.data, 'binary');
+    const filePath = `./${ctx.message.document.file_name}`;
+
+    await fs.writeFileSync(filePath, buffer);
+
+    textract.fromFileWithPath(filePath, async function (error, text) {
+      if (error) {
+        console.error(error);
+        ctx.reply('Произошла ошибка при обработке вашего файла.');
+      } else {
+        if (text.length > 4990) {
+          ctx.reply('Текст превышает 4990 символов.');
+        } else {
+          chatStates.set(ctx.chat.id, { text });
+
+          lastBotMessage = text;
+          await ctx.reply(text, Markup.inlineKeyboard([
+            [buttonText('копировать', 'callback_data4'), buttonText('пересказать 🔁', 'callback_data3')],
+            [buttonText("перевод 🌐", "callback_data2"),]
+          ]));
+
+        }
+      }
+    });
+  } catch (axiosError) {
+    console.error(axiosError);
+    ctx.reply('Произошла ошибка при получении файла.');
+  }
+});
+
 bot.on("message", async (ctx) => {
   const buttonText = Markup.button.callback;
   const userMessage = ctx.message.text;
 
-  if (isYotube(userMessage)) {
-    const loadingVideo = await ctx.reply("я разбираю видео 🎬");
+  if (isYoutube(userMessage)) {
+    const loadingVideo = await ctx.reply("Я разбираю видео 🎬");
 
     YoutubeTranscript.fetchTranscript(userMessage)
       .then((transcript) => {
         let textOnly = transcript.map((item) => item.text);
         let limit = textOnly.join(" ").substring(0, 4000);
-        textpol =textOnly.join(" ").substring(0, 4555);
+        lastBotMessage = textOnly.join(" ").substring(0, 4555);
 
         ctx.telegram.editMessageText(
           ctx.chat.id,
@@ -65,7 +99,7 @@ bot.on("message", async (ctx) => {
         );
       })
       .catch((error) => {
-        ctx.reply("чтото нетак: " + error.message);
+        ctx.reply("Что-то пошло не так: " + error.message);
       });
   } else if (userMessage) {
     const translatedUserMessage = await translateText(userMessage, "en");
@@ -92,11 +126,23 @@ bot.on("message", async (ctx) => {
       translatedResponse,
       Markup.inlineKeyboard([
         [
-          buttonText("подробнее 🧐📚", "callback_data1"),
-          buttonText("перевод 🌐", "callback_data2"),
+          buttonText("подробнее 🧐📚", "callback_data1"), buttonText("перевод 🌐", "callback_data2"),
         ],
       ])
     );
+  }
+});
+
+bot.on('text', (ctx) => {
+  const chatId = ctx.chat.id;
+  const chatState = chatStates.get(chatId);
+
+  if (chatState && chatState.state === 'waitingForCommand') {
+    const userCommand = ctx.message.text;
+    ctx.reply(`Вы ввели: ${userCommand}`);
+    chatStates.set(chatId, {});
+  } else {
+    ctx.reply('Неожиданный текст. Выполните другие действия сначала.');
   }
 });
 
@@ -120,21 +166,25 @@ bot.on("callback_query", async (ctx) => {
       message_id: loadingMessag.message_id,
     });
   } else if (data === "callback_data2") {
-    const chatBotInstance = new ChatBot(cookie);
-    await chatBotInstance.init();
-    let loadingMessag = await ctx.reply("I am fulfilling your request🌐");
-    lastBotMessage = await translateText(lastBotMessage, "en");
-    ctx.editMessageText(lastBotMessage, {
-      chat_id: ctx.chat.id,
-      message_id: loadingMessag.message_id,
-    });
+    if (!lastBotMessage) {
+      ctx.reply('текста нет')
+    } else {
+      const chatBotInstance = new ChatBot(cookie);
+      await chatBotInstance.init();
+      let loadingMessag = await ctx.reply("I am fulfilling your request🌐");
+      lastBotMessage = await translateText(lastBotMessage, "en");
+      ctx.editMessageText(lastBotMessage, {
+        chat_id: ctx.chat.id,
+        message_id: loadingMessag.message_id,
+      });
+    }
   } else if (data === "callback_data3") {
     const chatBotInstance = new ChatBot(cookie);
     await chatBotInstance.init();
     const loadingMessag = await ctx.reply(
       "я пытаюсь пересказать дайте мне секунду 😓 "
     );
-    const messageToBot = `Пожалуйста, перескажите текст на менее чем 500 символов как можно скорее. При этом, если в оригинальном тексте присутствуют нецензурные выражения, пожалуйста, замените их на культурные аналоги:${textpol}`;
+    const messageToBot = `Пожалуйста, перескажите текст на менее чем 500 символов как можно скорее. При этом, если в оригинальном тексте присутствуют нецензурные выражения, пожалуйста, замените их на культурные аналоги:${lastBotMessage}`;
     const response = await chatBotInstance.ask(
       messageToBot,
       convStyle,
@@ -149,8 +199,19 @@ bot.on("callback_query", async (ctx) => {
       null,
       translatedResponse
     );
+  } else if (data === "callback_data4") {
+    try {
+      await clipboard.write(lastBotMessage);
+      ctx.reply('Текст скопирован в буфер обмена.');
+    } catch (error) {
+      ctx.reply('Произошла ошибка при копировании текста.');
+      console.error(error);
+    }
   }
+
 });
+
+
 
 bot.launch();
 
