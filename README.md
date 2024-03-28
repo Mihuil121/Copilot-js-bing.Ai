@@ -1,17 +1,25 @@
 # Copilot-js-bing.Ai
 
-Copilot-js-bing.Ai is a Telegram bot that uses artificial intelligence to interact with users.
+Copilot-js-bing.Ai - это бот для Telegram, который использует искусственный интеллект для взаимодействия с пользователями.
 
-## Description
+## Описание
 
-This project is a Telegram bot that uses AI to communicate with users. The bot is able to translate text into English, and then use the AI model to generate a response. After receiving a response from the AI, the bot translates it back into Russian and sends it to the user. The bot also offers users additional features, such as getting more detailed information or translating text into English.
+Этот проект - бот для Telegram, который использует AI для общения с пользователями. Бот способен переводить текст на английский язык, а затем использовать модель AI для генерации ответа. Получив ответ от AI, бот переводит его обратно на русский язык и отправляет пользователю. Бот также предлагает пользователям дополнительные функции, такие как получение более подробной информации или перевод текста на английский язык.
 
-## Libraries used
+## Используемые библиотеки
 
-The code uses the `Telegraf` libraries to create a Telegram bot, `free-translate` to translate text, and `bingai-js` to interact with AI.
+Код использует библиотеки `Telegraf` для создания бота Telegram, `free-translate` для перевода текста и `bingai-js` для взаимодействия с AI.
 
-## Starting and stopping the bot
+## Запуск и остановка бота
 
-The bot is launched using the `bot.launch()` method, and can be stopped using the `SIGINT` or `SIGTERM` signals. To start the bot, you can use the `npm start` command.
+Бот запускается с помощью метода `bot.launch()`, и его можно остановить с помощью сигналов `SIGINT` или `SIGTERM`. Чтобы запустить бота, вы можете использовать команду `npm start`.
 
-https://t.me/newsBot121_bot
+[Telegram Bot](https://t.me/newsBot121_bot)
+
+## Новые функции
+
+- **Распознавание файлов**: Была добавлена функция распознавания файлов, за исключением PDF.
+- **Распознавание текста на фото**: Бот теперь способен распознавать текст на фотографиях.
+- **Пересказ видео**: Бот также может пересказывать содержание видео.
+
+Эти новые функции значительно расширяют возможности бота и делают его еще более полезным для пользователей. Приятного использования!
