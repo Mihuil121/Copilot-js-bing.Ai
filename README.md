@@ -1,5 +1,7 @@
 # Copilot-js-bing.Ai
 
+![gif](https://github.com/Mihuil121/Copilot-js-bing.Ai/blob/main/video.gif)
+
 Copilot-js-bing.Ai - это бот для Telegram, который использует искусственный интеллект для взаимодействия с пользователями.
 
 ## Описание
